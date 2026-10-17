@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BECS GPA Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f7f8;--card:#fff;--ink:#14262b;--mut:#5d7178;--line:#d9e2e5;--acc:#0f5c6e;--accI:#fff;--hi:#e9f2f4;--ok:#1a7f4b;--no:#a8452f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1e;--card:#15262c;--ink:#e6f0f2;--mut:#93aab1;--line:#26404a;--acc:#5cc2d6;--accI:#08242b;--hi:#1b3640;--ok:#5fd394;--no:#f08f78}}
+:root[data-theme="dark"]{--bg:#0e1a1e;--card:#15262c;--ink:#e6f0f2;--mut:#93aab1;--line:#26404a;--acc:#5cc2d6;--accI:#08242b;--hi:#1b3640;--ok:#5fd394;--no:#f08f78}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Source Sans 3",system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 14px 48px}
+h1{font:700 1.7rem/1.2 "Source Serif 4",Georgia,serif;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 16px;font-size:.95rem}
+nav{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;border-bottom:2px solid var(--line);margin-bottom:16px}
+nav button{flex:none;background:none;border:0;color:var(--mut);font:600 1rem inherit;font-family:inherit;padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar label{font-size:.9rem;color:var(--mut)}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.ghost{font:inherit;font-size:.9rem;background:none;color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:.95rem}
+th{color:var(--mut);font-weight:600;font-size:.85rem}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.code{color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tag{font-size:.75rem;border:1px solid var(--line);border-radius:99px;padding:1px 8px;color:var(--mut)}
+.tag.c{background:var(--hi);color:var(--acc);border-color:transparent}
+.sum{display:flex;gap:28px;flex-wrap:wrap;align-items:baseline;margin-top:16px;padding:14px 16px;background:var(--hi);border-radius:10px}
+.big{font:700 2.6rem/1 "Source Serif 4",Georgia,serif;color:var(--acc);font-variant-numeric:tabular-nums}
+.lab{color:var(--mut);font-size:.9rem}
+.hero{padding:22px 16px;background:var(--acc);color:var(--accI);border-radius:12px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;align-items:baseline}
+.hero .big{color:var(--accI);font-size:4rem}
+.hero .lab{color:var(--accI);opacity:.85}
+.ok{color:var(--ok);font-weight:600}.no{color:var(--no)}
+.miss td{background:var(--hi)}
+.sum>div{min-width:110px}.big.sm{font-size:2.4rem!important}input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc)}
+.note{color:var(--mut);font-size:.85rem;margin-top:14px}
+h2{font:700 1.15rem "Source Serif 4",Georgia,serif;margin:22px 0 8px}
+</style>
+</head>
+<body>
+<main>
+<h1>BECS GPA Calculator</h1>
+<p class="sub">BSc Honours in Electronics and Computer Science · Faculty of Science, University of Kelaniya (Handbook 2023/2024)</p>
+<nav id="tabs" role="tablist"></nav>
+<div id="view"></div>
+<p class="note">Grade points follow handbook section 2.2 and GPA is the credit-weighted mean (2.4). Credits are the last digit of each course code. ACLT and CMSK units are not counted for GPA. All Year 1 and 2 modules are compulsory and must be graded. In Years 3 and 4 only the modules you register for count. Class eligibility is a guide only: the 30-credits-per-level rule and time limits are not checked. Confirm with the Faculty.</p>
+</main>
+<script>
+const GP={'A+':4,'A':4,'A-':3.7,'B+':3.3,'B':3,'B-':2.7,'C+':2.3,'C':2,'C-':1.7,'D+':1.3,'D':1,'E':0};
+const Y1=`11212|Foundations in Computer Science
+11223|Fundamentals of Programming
+11413|Analogue Electronics I
+11422|Electric Circuit Fundamentals
+11431|Analogue Electronics Laboratory I
+11613|Applied Algebra & Statistics
+11722|Fundamentals of Management Accounting
+12233|Data Communications and Networks
+12243|Object Oriented Programming
+12443|Digital Electronics
+12451|Digital Electronics Laboratory
+12462|Mechanics & Properties of Materials
+12623|Calculus
+12712|Foundation Course in English
+12742|Project Management and Financing`;
+const Y2=`21213|Software Engineering
+21223|Data Structures and Algorithms
+21413|Analogue Electronics II (Operational Amplifiers)
+21422|Electromagnetism
+21431|Analogue Electronics Laboratory II
+21613|Differential Equations, Integral Transforms & Numerical Method
+21722|Organizational Behavior
+21732|Professional English
+22233|Computer Architecture and Operating Systems
+22243|Database Management Systems
+22443|Measurement & Instrumentation
+22451|Measurement & Instrumentation Laboratory
+22462|Signals and Systems
+22623|Numerical Methods in Scientific Computing
+22712|English in Today’s World
+22732|Marketing Fundamentals
+22811|Creative Design Project I`;
+// status per pathway: 1 = Electronics & CS, 2 = Electronics, 3 = Computer Science (C core, O optional, - not offered)
+const Y3=`31213|Enterprise Software Design and Architecture|O-C
+31233|Web and Internet Technologies|C-C
+31242|Visual Programming|O-O
+31412|Microcontrollers and Embedded Electronics|CC-
+31421|Microcontrollers and Embedded Electronics Laboratory|CC-
+31433|Communication Systems|CC-
+31443|Control Systems Design|CC-
+31712|Technical Communication|OO-
+31722|Introduction to Entrepreneurship|O--
+31732|Legal Environment of Business|O--
+31811|Creative Design Project II|C--
+32253|Intelligent Systems|COC
+32263|Full-stack Software Development|O-C
+32272|Mobile Application Development|OOO
+32453|Digital Signal Processing (DSP)|CC-
+32461|Digital Signal Processing Laboratory|CC-
+32472|Programmable Logic Devices and HDL|OC-
+32502|Micro-Electro Mechanical Systems (MEMS)|OO-
+32742|Operations Management|O--
+34223|Cyber Security and Forensics|O-O`;
+const Y4=`44213|Wireless Communication and Networks|OOO
+44223|Block Chain and Cryptocurrency|O-O
+44233|Computer Graphics and Visualization|C-C
+44243|High Performance Computing|O-O
+44253|Emerging Technologies in Computer Science|O-O
+44263|Machine Learning|OOC
+44273|Game Development|O-O
+44283|Advanced Databases|O-C
+44292|Human Computer Interaction|O-C
+44303|Information Assurance and Security|O-C
+44414|Power Electronics|OC-
+44424|CMOS VLSI System Design|OC-
+43432|Emerging Topics in Electronics|OC-
+44443|RF & Microwave Circuits Design|OC-
+44453|Industrial Electronics|CC-
+44462|Industrial Automation|CC-
+44472|Electronics Product Design & Manufacturing|CC-
+44482|Robotics and Automation|CC-
+44492|Electrical Machines and Drives|OC-
+43816|Research Project (Group)|C--
+44826|Industrial Training|C-O
+44014|Advanced Analogue Electronics|-C-
+44024|Advanced Electromagnetism|-C-
+43033|Advanced Experimental Laboratory I|-C-
+43043|Advanced Experimental Laboratory II|-C-
+44053|Optoelectronics|-C-
+44062|Modern Radar Systems|-O-
+44072|Physics of Semiconductor Devices|-O-
+44082|Semiconductor Device Processing & Fabrication|-O-
+44093|R&D Internship in Electronics|-C-
+44613|Data Science|--O
+44622|Big Data Technologies|--O
+44633|Object-Oriented Analysis and Design|--C
+44643|Logic Programming|--O
+44653|Digital Image Processing and Computer Vision|--O
+44663|Theory of Computing|--C
+44673|Theory of Compilers|--O
+44682|Research Methodologies|--O
+44693|Multimedia Systems Development|--O
+44703|Natural Language Processing|--O
+44712|Systems Administration|--O
+44723|Semantic Web and Ontological Modelling|--O
+44733|Cloud Computing|--O
+44743|System Level Programming|--O
+43838|Research Project (Individual)|-CC`;
+const parse=t=>t.split('\n').map(l=>{const [c,n,s]=l.split('|');return{c,n,s,cr:+c.slice(-1)}});
+const YEARS=[parse(Y1),parse(Y2),parse(Y3),parse(Y4)];
+// Year 4 course units that are offered in Year 3 (handbook table note 2)
+const MV='43033 43432 44014 44053 44414 44443 44233 44253 44263 44283 44633 44663 44682 44712'.split(' ');
+YEARS[2]=YEARS[2].concat(YEARS[3].filter(r=>MV.includes(r.c))).sort((a,b)=>a.c-b.c);
+YEARS[3]=YEARS[3].filter(r=>!MV.includes(r.c));
+let S={g:{},r:{},lock:{},hide:{},p:0,tab:0};
+try{const x=JSON.parse(localStorage.getItem('becs-gpa')||'null');if(x)S=Object.assign(S,x)}catch(e){}
+const save=()=>{try{localStorage.setItem('becs-gpa',JSON.stringify(S))}catch(e){}};
+Object.keys(S.g).forEach(c=>{if(S.g[c]&&c[0]>='3'&&!(c in S.r))S.r[c]=1});
+const rows=y=>YEARS[y].filter(r=>!r.s||r.s[S.p]!=='-');
+const isReg=r=>!r.s||r.s[S.p]==='C'||S.r[r.c];
+const act=y=>rows(y).filter(isReg);
+function stats(list){const o={cr:0,pts:0,c:0,d:0,b:0,a:0};
+ list.forEach(r=>{const g=S.g[r.c];if(!(g in GP))return;const p=GP[g];o.cr+=r.cr;o.pts+=p*r.cr;
+  if(p>=2)o.c+=r.cr;if(p>=1)o.d+=r.cr;if(p>=3)o.b+=r.cr;if(p>=4)o.a+=r.cr});
+ o.gpa=o.cr?o.pts/o.cr:null;return o}
+function lvl(y){const L=act(y),st=stats(L),reg=L.reduce((a,r)=>a+r.cr,0),pend=reg-st.cr;
+ return{L,st,reg,pend,all:reg?st.pts/reg:null}}
+const f=v=>v==null?'–':v.toFixed(2);
+const asel=()=>`<select class="as" aria-label="Assumed grade for pending modules">${Object.keys(GP).map(k=>`<option ${k==S.a?'selected':''}>${k}</option>`).join('')}</select>`;
+const tabs=document.getElementById('tabs'),view=document.getElementById('view');
+const names=['Year 1','Year 2','Year 3','Year 4','Overall GPA'];
+function drawTabs(){tabs.innerHTML=names.map((n,i)=>`<button role="tab" data-i="${i}" aria-selected="${S.tab==i}">${n}</button>`).join('')}
+tabs.onclick=e=>{const b=e.target.closest('button');if(b){S.tab=+b.dataset.i;save();render()}};
+function hookAs(fn){view.querySelectorAll('.as').forEach(s=>s.onchange=()=>{S.a=s.value;save();fn()})}
+function render(){drawTabs();S.tab<4?year(S.tab):overall()}
+function year(y){
+ const path=y>1,list=rows(y),show=path&&S.hide[y]?list.filter(isReg):list,v=lvl(y),st=v.st,lock=S.lock[y],miss=path?0:list.filter(r=>!S.g[r.c]).length;
+ let h='<div class="bar">'+(path?`<label>Pathway <select id="path"><option value="0">Electronics &amp; Computer Science</option><option value="1">Specialization in Electronics</option><option value="2">Specialization in Computer Science</option></select></label><button class="ghost" id="hide">${S.hide[y]?'Show all modules':'Hide not-taken modules'}</button>`:`<span class="lab">All modules are compulsory in this year.</span>`)+'<button class="ghost" id="clr">Clear grades</button></div>';
+ if(path)h+=`<p class="sub">Core modules are compulsory and always counted. Tick the optional modules you registered for at the start of the academic year. Choose a grade once the result is released; registered modules without a grade count as 0.</p>`;
+ h+=`<div class="tw"><table><thead><tr>${path?'<th>Reg.</th>':''}<th>Code</th><th>Course</th>${path?'<th>Status</th>':''}<th class="n">Credits</th><th>Grade</th></tr></thead><tbody>`;
+ show.forEach(r=>{const g=S.g[r.c]||'',reg=isReg(r),core=path&&r.s[S.p]==='C';
+  h+=`<tr${!path&&!g?' class="miss"':''}>${path?`<td><input type="checkbox" data-r="${r.c}" aria-label="Registered for ${r.n}" ${reg?'checked':''} ${core?'disabled':''}></td>`:''}<td class="code">BECS ${r.c}</td><td>${r.n}</td>${path?`<td><span class="tag ${r.s[S.p]=='C'?'c':''}">${r.s[S.p]=='C'?'Core':'Optional'}</span></td>`:''}<td class="n">${r.cr}</td><td><select data-c="${r.c}" ${reg?'':'disabled'} aria-label="Grade for ${r.n}"><option value="">${path?'Result pending':'Select grade'}</option>${Object.keys(GP).map(k=>`<option ${k==g?'selected':''}>${k}</option>`).join('')}</select></td></tr>`});
+ h+='</tbody></table></div>';
+ h+=path?`<div class="sum"><div><b>${v.reg}</b><div class="lab">credits registered</div></div><div><b>${st.cr}</b><div class="lab">results released</div></div><div><div class="big">${f(st.gpa)}</div><div class="lab">GPA · released results only</div></div><div><div class="big">${f(v.all)}</div><div class="lab">GPA · all registered modules</div></div></div>`
+ :`<div class="sum"><div><div class="big">${f(st.gpa)}</div><div class="lab">Year ${y+1} GPA</div></div><div><b>${st.cr}</b><div class="lab">credits counted</div></div>${miss?`<div class="no"><b>${miss}</b> module${miss>1?'s':''} still need a grade (all are compulsory)</div>`:''}</div>`;
+ view.innerHTML=h;hookAs(()=>year(y));
+ if(path){const p=document.getElementById('path');p.value=S.p;p.onchange=()=>{S.p=+p.value;save();render()};
+  document.getElementById('hide').onclick=()=>{S.hide[y]=!S.hide[y];save();year(y)};
+  view.querySelectorAll('input[data-r]').forEach(i=>i.onchange=()=>{S.r[i.dataset.r]=i.checked?1:0;save();year(y)})}
+ view.querySelectorAll('select[data-c]').forEach(s=>s.onchange=()=>{S.g[s.dataset.c]=s.value;save();year(y)});
+ document.getElementById('clr').onclick=()=>{list.forEach(r=>delete S.g[r.c]);save();year(y)};
+}
+function overall(){
+ const V=[0,1,2,3].map(lvl),all=stats(V.flatMap(v=>v.L)),reg=V.reduce((a,v)=>a+v.reg,0),pend=V.reduce((a,v)=>a+v.pend,0),allG=reg?all.pts/reg:null;
+ let h=`<div class="hero"><div><div class="big">${f(all.gpa)}</div><div class="lab">Overall GPA · released results only</div></div><div><div class="big sm">${f(allG)}</div><div class="lab">All registered modules</div></div><div><b style="font-size:1.4rem">${reg}</b><div class="lab">credits registered</div></div><div><b style="font-size:1.4rem">${all.cr}</b><div class="lab">results released</div></div><div><b id="fc" style="font-size:1.4rem">–</b><div class="lab">Final class (released results)</div></div></div>`;
+ const cls=g=>g==null?'–':g>=3.7?'First Class':g>=3.3?'Second Class (Upper)':g>=3?'Second Class (Lower)':g>=2?'Honours pass':'Below pass';
+ const inc=[0,1].flatMap(rows).filter(r=>!S.g[r.c]).length;
+ h+=(inc?`<p class="no">${inc} Year 1–2 module${inc>1?'s':''} still need a grade, so the overall figures are not final.</p>`:'')+'<h2>Class for each year</h2><div class="tw"><table><thead><tr><th>Year</th><th class="n">Registered</th><th class="n">Released</th><th class="n">GPA released</th><th class="n">GPA all</th><th>Class (released)</th></tr></thead><tbody>'+V.map((v,i)=>`<tr><td>Year ${i+1}</td><td class="n">${v.reg}</td><td class="n">${v.st.cr}</td><td class="n">${f(v.st.gpa)}</td><td class="n">${f(v.all)}</td><td>${cls(v.st.gpa)}</td></tr>`).join('')+`<tr><td><b>Overall</b></td><td class="n">${reg}</td><td class="n">${all.cr}</td><td class="n">${f(all.gpa)}</td><td class="n">${f(allG)}</td><td>${cls(all.gpa)}</td></tr></tbody></table></div><p class="note">“GPA all” counts modules whose results are not out yet as 0 grade points. Yearly classes use the GPA bands only (3.70, 3.30, 3.00, 2.00); the degree class is awarded on the overall result.</p>`;
+ const pc=(a,b)=>b?Math.round(100*a/b):0;
+ const K=[['First Class',3.7,120,'a'],['Second Class (Upper)',3.3,112,'b'],['Second Class (Lower)',3.0,112,'b'],['Honours pass',2.0,104,null]];
+ h+='<h2>Honours class check</h2><div class="tw"><table><thead><tr><th>Class</th><th>Needs</th><th>Status</th></tr></thead><tbody>';
+ let best=null;
+ K.forEach(([n,g,cc,k])=>{const den=k=='a'?all.c:all.d,share=k?pc(all[k],den):100;
+  const miss=[];if(all.gpa==null||all.gpa<g)miss.push('GPA below '+g.toFixed(2));if(all.c<cc)miss.push((cc-all.c)+' more credits at C or better');if(all.d<120)miss.push((120-all.d)+' more credits at D or better');if(k&&share<50)miss.push('grades '+(k=='a'?'A':'B')+' or better cover '+share+'% (need 50%)');
+  const ok=!miss.length;if(ok&&!best)best=n;
+  h+=`<tr><td>${n}</td><td>GPA ≥ ${g.toFixed(2)}${k?`, ≥50% credits at ${k=='a'?'A':'B'}+`:''}</td><td class="${ok?'ok':'no'}">${ok?'Met':miss.join('; ')}</td></tr>`});
+ h+=`</tbody></table></div><p class="note">${best?`With the results released so far you meet the requirements for <b>${best}</b>.`:'No class requirements are met yet by the released results.'}</p>`;
+ view.innerHTML=h;hookAs(overall);
+ document.getElementById('fc').textContent=best?best+(pend?' (so far)':''):(all.cr?'Not yet eligible':'–');
+}
+render();
+</script>
+</body>
+</html>

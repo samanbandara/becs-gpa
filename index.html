@@ -44,6 +44,44 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .sum>div{min-width:110px}.big.sm{font-size:2.4rem!important}input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc)}
 .note{color:var(--mut);font-size:.85rem;margin-top:14px}
 h2{font:700 1.15rem "Source Serif 4",Georgia,serif;margin:22px 0 8px}
+html{-webkit-text-size-adjust:100%}button{touch-action:manipulation}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+@media (max-width:640px){
+main{padding:12px max(12px,env(safe-area-inset-right)) 40px max(12px,env(safe-area-inset-left))}
+h1{font-size:1.35rem}.sub{font-size:.88rem}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
+nav button{padding:12px 11px;font-size:.95rem}
+.bar{flex-direction:column;align-items:stretch}
+.bar label{display:flex;flex-direction:column;gap:4px}
+.bar select{width:100%}
+select,.ghost{min-height:44px}.ghost{width:100%}
+input[type=checkbox]{width:24px;height:24px}
+.tw:has(.ct){background:none;border:0;overflow:visible}
+.ct{min-width:0}.ct thead{display:none}
+.ct,.ct tbody{display:block}
+.ct tr{display:grid;grid-template-columns:0 auto auto 1fr;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.ct tr:has(.k-reg){grid-template-columns:36px auto auto 1fr}
+.ct tr.miss{background:var(--hi)}
+.ct td,.ct .miss td{display:block;border:0;padding:0;background:none;font-size:.82rem}
+.k-reg{grid-column:1;grid-row:1/4;align-self:start;margin-top:2px}
+.k-name{grid-column:2/-1;grid-row:1;font-weight:600;font-size:1rem!important;line-height:1.3;margin-bottom:8px}
+.ct .code{grid-column:2;grid-row:2}
+.ct td.k-cr{grid-column:3;grid-row:2;margin-left:8px;text-align:left;white-space:nowrap}
+.k-cr::after{content:" cr"}
+.k-st{grid-column:4;grid-row:2;margin-left:8px}
+.k-gr{grid-column:2/-1;grid-row:3;margin-top:10px}
+.k-gr select{width:100%;max-width:100%}
+table:not(.ct){min-width:0}
+table:not(.ct) th,table:not(.ct) td{padding:8px 6px;font-size:.8rem}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px}
+.sum>div{min-width:0}.sum .no{grid-column:1/-1}
+.big{font-size:2rem}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+.hero>div:first-child{grid-column:1/-1}
+.hero .big{font-size:3rem}.hero .big.sm{font-size:2rem!important}
+.hero b{font-size:1.15rem!important}
+.note{font-size:.8rem}
+}
 </style>
 </head>
 <body>
@@ -185,9 +223,9 @@ function year(y){
  const path=y>1,list=rows(y),show=path&&S.hide[y]?list.filter(isReg):list,v=lvl(y),st=v.st,lock=S.lock[y],miss=path?0:list.filter(r=>!S.g[r.c]).length;
  let h='<div class="bar">'+(path?`<label>Pathway <select id="path"><option value="0">Electronics &amp; Computer Science</option><option value="1">Specialization in Electronics</option><option value="2">Specialization in Computer Science</option></select></label><button class="ghost" id="hide">${S.hide[y]?'Show all modules':'Hide not-taken modules'}</button>`:`<span class="lab">All modules are compulsory in this year.</span>`)+'<button class="ghost" id="clr">Clear grades</button></div>';
  if(path)h+=`<p class="sub">Core modules are compulsory and always counted. Tick the optional modules you registered for at the start of the academic year. Choose a grade once the result is released; registered modules without a grade count as 0.</p>`;
- h+=`<div class="tw"><table><thead><tr>${path?'<th>Reg.</th>':''}<th>Code</th><th>Course</th>${path?'<th>Status</th>':''}<th class="n">Credits</th><th>Grade</th></tr></thead><tbody>`;
+ h+=`<div class="tw"><table class="ct"><thead><tr>${path?'<th>Reg.</th>':''}<th>Code</th><th>Course</th>${path?'<th>Status</th>':''}<th class="n">Credits</th><th>Grade</th></tr></thead><tbody>`;
  show.forEach(r=>{const g=S.g[r.c]||'',reg=isReg(r),core=path&&r.s[S.p]==='C';
-  h+=`<tr${!path&&!g?' class="miss"':''}>${path?`<td><input type="checkbox" data-r="${r.c}" aria-label="Registered for ${r.n}" ${reg?'checked':''} ${core?'disabled':''}></td>`:''}<td class="code">BECS ${r.c}</td><td>${r.n}</td>${path?`<td><span class="tag ${r.s[S.p]=='C'?'c':''}">${r.s[S.p]=='C'?'Core':'Optional'}</span></td>`:''}<td class="n">${r.cr}</td><td><select data-c="${r.c}" ${reg?'':'disabled'} aria-label="Grade for ${r.n}"><option value="">${path?'Result pending':'Select grade'}</option>${Object.keys(GP).map(k=>`<option ${k==g?'selected':''}>${k}</option>`).join('')}</select></td></tr>`});
+  h+=`<tr${!path&&!g?' class="miss"':''}>${path?`<td class="k-reg"><input type="checkbox" data-r="${r.c}" aria-label="Registered for ${r.n}" ${reg?'checked':''} ${core?'disabled':''}></td>`:''}<td class="code">BECS ${r.c}</td><td class="k-name">${r.n}</td>${path?`<td class="k-st"><span class="tag ${r.s[S.p]=='C'?'c':''}">${r.s[S.p]=='C'?'Core':'Optional'}</span></td>`:''}<td class="n k-cr">${r.cr}</td><td class="k-gr"><select data-c="${r.c}" ${reg?'':'disabled'} aria-label="Grade for ${r.n}"><option value="">${path?'Result pending':'Select grade'}</option>${Object.keys(GP).map(k=>`<option ${k==g?'selected':''}>${k}</option>`).join('')}</select></td></tr>`});
  h+='</tbody></table></div>';
  h+=path?`<div class="sum"><div><b>${v.reg}</b><div class="lab">credits registered</div></div><div><b>${st.cr}</b><div class="lab">results released</div></div><div><div class="big">${f(st.gpa)}</div><div class="lab">GPA · released results only</div></div><div><div class="big">${f(v.all)}</div><div class="lab">GPA · all registered modules</div></div></div>`
  :`<div class="sum"><div><div class="big">${f(st.gpa)}</div><div class="lab">Year ${y+1} GPA</div></div><div><b>${st.cr}</b><div class="lab">credits counted</div></div>${miss?`<div class="no"><b>${miss}</b> module${miss>1?'s':''} still need a grade (all are compulsory)</div>`:''}</div>`;
